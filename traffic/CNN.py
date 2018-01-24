@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 
 # 数据占位
-x = tf.placeholder(tf.float32, [None, 6], name='input_x')
+x = tf.placeholder(tf.float32, [None, 5], name='input_x')
 y_actual = tf.placeholder(tf.float32, shape=[None, 7], name='input_y')
 
 
@@ -23,7 +23,7 @@ def conv2d(x, W):
 
 
 def conv2d_6(x, W):
-    return tf.nn.conv2d(x, W, strides=[1, 1, 6, 1], padding='SAME')
+    return tf.nn.conv2d(x, W, strides=[1, 1, 5, 1], padding='SAME')
 
 
 def max_pool(x):
@@ -36,14 +36,14 @@ def max_pool_2(x):
 
 # 构建网络
 # 获取数据+BN层1
-x_image = tf.reshape(x, [-1, 1, 6, 1])
+x_image = tf.reshape(x, [-1, 1, 5, 1])
 epsilon = 0.001
 mean, var = tf.nn.moments(x_image, axes=[0],)
 scale = tf.Variable(tf.ones([1]))
 shift = tf.Variable(tf.zeros([1]))
 x_image_normal = tf.nn.batch_normalization(x_image, mean, var, shift, scale, epsilon)
 # 卷积层1+池化层1
-W_conv1 = weight_variable([1, 6, 1, 32])
+W_conv1 = weight_variable([1, 5, 1, 32])
 b_conv1 = bias_variable([32])
 h_conv1 = tf.nn.relu(conv2d_6(x_image_normal, W_conv1) + b_conv1)
 h_pool1 = max_pool(h_conv1)
@@ -97,12 +97,12 @@ sess.run(tf.global_variables_initializer())
 
 # 读入真实数据
 input_count = 755200
-x_s = np.loadtxt('Comnet-14_feature6_train.txt')
+x_s = np.loadtxt('Comnet-14_feature5_train.txt')
 y_s = np.loadtxt('Comnet-14_feature6_train_label.txt')
-train_images = np.array([[0] * 6 for i in range(input_count)])
+train_images = np.array([[0] * 5 for i in range(input_count)])
 train_labels = np.array([[0] * 7 for i in range(input_count)])
 for index in range(input_count):
-    for j in range(6):
+    for j in range(5):
         train_images[index][:] = x_s[index, :]
     for k in range(7):
         train_labels[index][:] = y_s[index, :]
@@ -118,15 +118,15 @@ for index in range(input_count):
 #     for k in range(7):
 #         test_labels[index][:] = y_t[index, :]
 
-test_images = [[4696.0, 3389.0, .0, 62.0, 115.0, 65535.0],
-               [3389.0, 4696.0, 1.0, 62.0, 128.0, 64240.0],
-               [4696.0, 3389.0, .0, 54.0, 115.0, 65535.0],
-               [3389.0, 4696.0, 1.0, 65.0, 128.0, 64204.0]]
+test_images = [[4696.0, 3389.0, 62.0, 115.0, 65535.0],
+               [3389.0, 4696.0, 62.0, 128.0, 64240.0],
+               [4696.0, 3389.0, 54.0, 115.0, 65535.0],
+               [3389.0, 4696.0, 65.0, 128.0, 64204.0]]
 test_labels = [[1, 0, 0, 0, 0, 0, 0],
                [1, 0, 0, 0, 0, 0, 0],
                [1, 0, 0, 0, 0, 0, 0],
                [1, 0, 0, 0, 0, 0, 0]]
-for i in range(2000):
+for i in range(1900):
     if i % 5 == 0:
         train_accuracy = accuracy.eval(feed_dict={x: train_images, y_actual: train_labels, keep_prob: 0.5})
         # print("step %d, train accuracy %g" % (i, train_accuracy))
@@ -135,4 +135,4 @@ for i in range(2000):
         print("step %d, train accuracy %g" % (i, train_accuracy))
         # print(test_predict)
     train_step.run(feed_dict={x: train_images, y_actual: train_labels, keep_prob: 0.5})
-saver.save(sess, 'model/my-model')
+saver.save(sess, 'model/my-model-feature5')

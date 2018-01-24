@@ -1,5 +1,7 @@
-import tensorflow as tf
-import numpy as np
+import socket
 
-print(tf.__version__)
+myname = socket.getfqdn(socket.gethostname())
+myaddr = socket.gethostbyname(myname)
+print(myname)
+print(myaddr)
 
