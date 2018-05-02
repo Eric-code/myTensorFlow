@@ -1,4 +1,3 @@
-# 头文件
 import tensorflow as tf
 import numpy as np
 
@@ -52,17 +51,11 @@ drop1 = tf.layers.dropout(pool1, rate=0.5, training=tf_is_training)   # drop out
 conv2 = tf.layers.conv2d(drop1, 64, 4, 1, 'same', activation=tf.nn.relu)    # -> (1, 19, 64)
 pool2 = tf.layers.max_pooling2d(conv2, 1, 1)    # -> (1, 19, 64)
 drop2 = tf.layers.dropout(pool2, rate=0.5, training=tf_is_training)   # drop out 50% of inputs
-flat = tf.reshape(drop2, [-1, 1*19*64])          # -> (7*7*32, )
+flat = tf.reshape(pool2, [-1, 1*19*64])          # -> (7*7*32, )
 flat2 = tf.layers.dense(flat, 1024)
 output = tf.layers.dense(flat2, 8)              # output layer
-# output = tf.nn.softmax(output)
-print(tf_y)
-print(output)
-# output = tf.to_int32(output)
-tf_y = tf.to_float(tf_y)
-# loss = tf.reduce_mean((tf_y - output) * (tf_y - output))
-loss = tf.reduce_mean(-tf.reduce_sum(tf_y * tf.log(tf.clip_by_value(output, 1e-15, 1.0))))
-# loss = tf.losses.softmax_cross_entropy(onehot_labels=tf_y, logits=output)           # compute cost
+
+loss = tf.losses.softmax_cross_entropy(onehot_labels=tf_y, logits=output)           # compute cost
 train_op = tf.train.AdamOptimizer(0.001).minimize(loss)
 
 accuracy = tf.metrics.accuracy(          # return (acc, update_op), and create 2 local variables
@@ -77,36 +70,11 @@ train_x, train_y = read_data("flow_15s_19_train_label.csv")
 test_x, test_y = read_data("flow_15s_19_test_label.csv")
 
 
-# input_count = 755200
-# x_s = np.loadtxt('Comnet-14_feature5_train.txt')
-# y_s = np.loadtxt('Comnet-14_feature6_train_label.txt')
-# train_images = np.array([[0] * 5 for i in range(input_count)])
-# train_labels = np.array([[0] * 7 for i in range(input_count)])
-# for index in range(input_count):
-#     for j in range(5):
-#         train_images[index][:] = x_s[index, :]
-#     for k in range(7):
-#         train_labels[index][:] = y_s[index, :]
-
-# input_count1 = 83600
-# x_t = np.loadtxt('Comnet-14_feature6_test.txt')
-# y_t = np.loadtxt('Comnet-14_feature6_test_label.txt')
-# test_images = np.array([[0] * 6 for i in range(input_count1)])
-# test_labels = np.array([[0] * 7 for i in range(input_count1)])
-# for index in range(input_count1):
-#     for j in range(6):
-#         test_images[index][:] = x_t[index, :]
-#     for k in range(7):
-#         test_labels[index][:] = y_t[index, :]
-
 for i in range(5000):
     if i % 5 == 0:
         accuracy_, flat_representation = sess.run([accuracy, flat], {tf_x: test_x, tf_y: test_y, tf_is_training: False})
-        # print("step %d, train accuracy %g" % (i, train_accuracy))
-        # test_predict = ytest_predict.eval(feed_dict={x: test_images, y_actual: test_labels, keep_prob: 1})
-        # test_accuracy = accuracy.eval(feed_dict={x: test_images, y_actual: test_labels, keep_prob: 0.5})
         print("step %d, test accuracy %g" % (i, accuracy_))
         # print(test_predict)
     # train_step.run(feed_dict={x: train_x, y_actual: train_y})
     _, loss_ = sess.run([train_op, loss], {tf_x: train_x, tf_y: train_y, tf_is_training: True})
-# saver.save(sess, 'model/my-model-feature5')
+
